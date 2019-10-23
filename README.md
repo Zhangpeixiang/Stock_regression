@@ -17,4 +17,4 @@
 另外模型的整体和最后12个月的MSE和1-MAPE结果分别为：
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/SVR_img.jpg)<br>
 分析:<br>
-通过调节C和gamma，可以看到模型大致拟合了曲线，但是SVR模型拟合的曲线有很强的滞后性，即单期滞后性，并且模型拟合的MAPE差别也较大，整体看来，传统的统计学习方法并不能很好的拟合曲线，准备使用深度学习LSTM方法
+通过调节C和gamma，可以看到模型大致拟合了曲线，但是SVR模型拟合的曲线有很强的滞后性，即单期滞后性，MSE值比较大的原因是我们对原始的Y值进行了log对数操作，并且其本身数值也比较大，指标检测的值都是基于还原的值进行的，难免MSE会很大，但模型拟合的MAPE差别也较大，从整体看来，传统的统计学习方法并不能很好的拟合曲线，准备使用深度学习LSTM方法
