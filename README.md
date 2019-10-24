@@ -60,9 +60,9 @@ M1：将timestep设置为1，并固定最后12个月为验证集，即采用如�
         Y_test = lstm_train_y[-12:]
 ```
 得到的数据集最终图像如下：<br>
-
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/temp1.jpg)<br>
 接下来我们开始进行训练，训练得到的loss图像如下：<br>
-
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/train_loss.jpg)<br>
 之后我们采用plot_test代码对训练得到的loss较低的模型进行具体鉴别，<br>
 ```python
 def plot_test(train_x, org_y):
