@@ -70,7 +70,7 @@ def preprocess_handle(pca_descending, scaler_y_data, split_type):
 def load_data(scaler_model):
     df = pd.read_excel('./regression_data.xlsx', sheet_name='Sheet1')  # 可以通过sheet_name来指定读取的表单
     # 因为沪深3000股价采用前复权方式获取，并且其从1000到3000跨度加大，需使用log对其进行归一化
-    data_nor = scaler_adjust(df.iloc[:, 1:74], scaler_model)
+    data_nor = scaler_adjust(df.iloc[:, 1:73], scaler_model)
     # 观察其线性相关矩阵
     # df_cor = pd.DataFrame(data_nor).corr()
     # import seaborn as sns
@@ -95,9 +95,19 @@ def descending_dimension(x):
     # print(pca_x[-3:, :])
     return pca_x
 
+def validation_plot(validation_true, validation_pred):
+    plt.plot(np.array(validation_true), 'blue', label='True value')
+    plt.plot(np.array(validation_pred), 'r', label='Predict value')
+    plt.title('Validation curve')
+    plt.xlabel('Time')
+    plt.ylabel('Close')
+    plt.legend()
+    plt.show()
+
+
 def svr_base_model(train_x, test_x, train_y, test_y, pca_x, org_y):
     # 测算MSE或者1-MAPE这两个指标均采用原始值（即log之前的y值）来进行测算
-    regressor = SVR(kernel='rbf', C=100, gamma=0.0001)
+    regressor = SVR(kernel='rbf', C=10, gamma=0.00001)
     regressor.fit(train_x, train_y)
     pred_y = regressor.predict(test_x)
     pre_y = regressor.predict(pca_x)
@@ -131,6 +141,7 @@ def svr_base_model(train_x, test_x, train_y, test_y, pca_x, org_y):
     plt.ylabel('Close')
     plt.legend()
     plt.show()
+    validation_plot(np.array(re_log_test_y), np.array(re_log_pred_y))
 
 def regression_main():
     # scaler_model 是数据标准化的方式
