@@ -99,4 +99,10 @@ def plot_test(train_x, org_y):
     print('Validation MAPE', 100-v_mape)
     validation_plot(validation_pre, validation_true)
 ```
+如果最后程序运行没问题，应该显示的图如下所示:<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/res.jpg)<br>
 测试了loss最低的模型结果如下所示:<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/8000.png)<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/test8000.png)<br>
+分析:<br>
+可以看到我们通过设置最后12个月作为验证集，并采用timestep为1的LSTM模型进行训练得到的最后结果如上图，模型在训练集上很好的拟合了趋势，但是对于验证集由正转负的方向可以捕捉到，但是由负转正的趋势并没有捕捉到，整体还是有一定的滞后性
