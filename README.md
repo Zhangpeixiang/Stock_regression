@@ -9,7 +9,7 @@
 ---
 ## 实验研究
 1. 传统统计学习回归模型以及时间序列模型<br>
-先简单介绍下普通的常见回归问题：<br>
+先用比较经典的SVR支持向量机回归进行回归拟合，选取如下指标，采用PCA进行降维，降维后划分训练集和验证集，进行训练调参后，最后画出整体和验证集拟合曲线：<br>
 
 其中输入的数据通过excel中的wind函数进行提取，选取了如下一些基本面指标、wind的所有技术指标、宏观指标（由于宏观指标的滞后性，有些滞后1期，有些滞后2期）：<br>
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/org_data.jpg)<br>
