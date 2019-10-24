@@ -105,4 +105,4 @@ def plot_test(train_x, org_y):
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/8000.png)<br>
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/test8000.png)<br>
 分析:<br>
-可以看到我们通过设置最后12个月作为验证集，并采用timestep为1的LSTM模型进行训练得到的最后结果如上图，模型在训练集上很好的拟合了趋势，但是对于验证集由正转负的方向可以捕捉到，但是由负转正的趋势并没有捕捉到，整体还是有一定的滞后性
+可以看到我们通过设置最后12个月作为验证集，并采用timestep为1的LSTM模型进行训练得到的最后结果如上图，模型在训练集上很好的拟合了趋势，但是对于验证集由正转负的方向可以捕捉到，但是由负转正的趋势并没有捕捉到，整体还是有一定的滞后性，但是相比于SVR模型，LSTM无论在训练集或者在测试集都更好的拟合了数据，论证了深度学习方法的有效性
