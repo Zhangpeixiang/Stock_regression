@@ -62,3 +62,41 @@ M1：将timestep设置为1，并固定最后12个月为验证集，即采用如�
 得到的数据集最终图像如下：<br>
 
 接下来我们开始进行训练，训练得到的loss图像如下：<br>
+
+之后我们采用plot_test代码对训练得到的loss较低的模型进行具体鉴别，<br>
+```python
+def plot_test(train_x, org_y):
+    # 记录每个loss较低的模型名称32-0.00100_3T_LSTM_model_191024SGD 34-0.00081_3T_LSTM_model_191024SGD
+    model = load_model('./LSTM_3T_model/32-0.00100_3T_LSTM_model_191024SGD.h5', 'SGD')
+    plt.plot(np.array(org_y), 'blue', label='true data')
+    com_list = model.predict(train_x).tolist()
+    # 将Z-score标准化后的数据进行还原,这里无论是预测的y还是真实的y均*std+mean就可以了，这两个需要还原为原始值
+    # res_list = reshape_org_shape(des_y, com_list, org_y)
+    # 将log标准化后的数据进行还原,将所有预测的y值变成以10为底的幂指数
+    res_list = [math.pow(10, float(i[0])) for i in com_list]
+    validation_pre = res_list[-12:]
+    validation_true = np.array(org_y)[-12:]
+    plt.plot(res_list, 'r', label='predict')
+    plt.title('Total curve')
+    plt.xlabel('Time')
+    plt.ylabel('Close')
+    plt.legend()
+    plt.show()
+    # 写入文件
+    # from openpyxl import load_workbook
+    # wb = load_workbook('./stock_reg_train_data.xlsx')
+    # ws = wb.get_sheet_by_name('Sheet1')
+    # for index, v in enumerate(res_list):
+    #     ws.cell(row=2+index, column=1, value=v)
+    # wb.save('./stock_reg_train_data.xlsx')
+    mse = mean_squared_error(np.array(org_y), res_list)
+    v_mse = mean_squared_error(validation_true, validation_pre)
+    print('Total MSE', mse)
+    print('Validation MSE', v_mse)
+    mape_s = mape(np.array(org_y), np.array(res_list))
+    v_mape = mape(validation_true, np.array(validation_pre))
+    print('Total MAPE', 100-mape_s)
+    print('Validation MAPE', 100-v_mape)
+    validation_plot(validation_pre, validation_true)
+```
+测试了loss最低的模型结果如下所示:<br>
