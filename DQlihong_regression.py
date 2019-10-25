@@ -70,6 +70,7 @@ def reshape_train_data(des_data, num):
                 res_list.append(data+i)
         else:
             break
+    # 预测debug的时候，需要将这里的176+1，预测两个月的就加2，176是数据的总样本量（训练+验证）
     res_data = np.array(res_list).reshape(176-num+1, num, 24)
     return res_data
 
@@ -96,16 +97,18 @@ def preprocess_handle(pca_descending, scaler_y_data, split_type, mode):
     elif split_type == 3 and mode == 'lstm':
         # 将输入数据转换为LSTM的三个时间输入，即用之前的历史三个月的股价以及其参数预测下一个月的月度股价
         lstm_train_x = reshape_train_data(pca_descending, split_type)
-        lstm_train_y = scaler_y_data[2:]
+        lstm_train_y = scaler_y_data[split_type-1:]
         X_train = lstm_train_x[:-12]
         X_test = lstm_train_x[-12:]
         Y_train = lstm_train_y[:-12]
         Y_test = lstm_train_y[-12:]
+        # debug here
+        # print(lstm_train_x[-1, :])
         return X_train, X_test, Y_train, Y_test, lstm_train_x, lstm_train_y
-    elif split_type == 6 and mode == 'lstm':
+    elif split_type == 5 and mode == 'lstm':
         # 将输入数据转换为LSTM的三个时间输入，即用之前的历史三个月的股价以及其参数预测下一个月的月度股价
         lstm_train_x = reshape_train_data(pca_descending, split_type)
-        lstm_train_y = scaler_y_data[5:]
+        lstm_train_y = scaler_y_data[split_type-1:]
         X_train = lstm_train_x[:-12]
         X_test = lstm_train_x[-12:]
         Y_train = lstm_train_y[:-12]
@@ -215,7 +218,7 @@ def train_model(re_train, re_test, train_y, test_y):
     batch_size = 8
     epoch = 10000
     model = build_model()
-    checkpoint = ModelCheckpoint(filepath='./LSTM_3T_model/{epoch:02d}-{val_loss:.5f}_3T_LSTM_model_191025SGD.h5',
+    checkpoint = ModelCheckpoint(filepath='./LSTM_5T_model/{epoch:02d}-{val_loss:.5f}_5T_LSTM_model_191025SGD.h5',
                                  monitor='val_loss', save_best_only=False, save_weights_only=True, mode='min',
                                  period=500)
     history = model.fit(re_train, train_y, batch_size=batch_size, epochs=epoch, validation_data=(re_test, test_y),
@@ -256,8 +259,13 @@ def mape(y_true, y_pred):
     return np.mean(np.abs((y_pred - y_true) / y_true)) * 100
 
 def plot_test(train_x, org_y):
-    # 记录每个loss较低的模型名称
-    # 8000-0.00107_1T_LSTM_model_191024SGD.h5 5000-0.00299_3T_LSTM_model_191025SGD
+    # 记录每个loss较低的模型名称,通过实验不同的timestep，发现timestep为3时最好，可能3为一个季度，模型更容易捕捉季节因素？
+    # 8000-0.00107_1T_LSTM_model_191024SGD.h5 1T
+    # 8000-0.00296_3T_LSTM_model_191025SGD.h5 3T
+    # 3500-0.01378_6T_LSTM_model_191025SGD    6T
+    # 7000-0.00357_2T_LSTM_model_191025SGD    3T
+    # 8000-0.00527_4T_LSTM_model_191025SGD    4T
+    # 3000-0.00767_5T_LSTM_model_191025SGD    5T
     model = load_model('./LSTM_3T_model/8000-0.00296_3T_LSTM_model_191025SGD.h5', 'SGD')
     plt.plot(np.array(org_y), 'blue', label='true data')
     com_list = model.predict(train_x).tolist()
@@ -274,12 +282,12 @@ def plot_test(train_x, org_y):
     plt.legend()
     plt.show()
     # 写入文件
-    # from openpyxl import load_workbook
-    # wb = load_workbook('./stock_reg_train_data.xlsx')
-    # ws = wb.get_sheet_by_name('Sheet1')
-    # for index, v in enumerate(res_list):
-    #     ws.cell(row=2+index, column=1, value=v)
-    # wb.save('./stock_reg_train_data.xlsx')
+    from openpyxl import load_workbook
+    wb = load_workbook('./regression_data.xlsx')
+    ws = wb.get_sheet_by_name('temp')
+    for index, v in enumerate(res_list):
+        ws.cell(row=2+index, column=1, value=v)
+    wb.save('./regression_data.xlsx')
     rmse = math.sqrt(mean_squared_error(np.array(org_y), res_list))
     v_rmse = math.sqrt(mean_squared_error(validation_true, validation_pre))
     print('Total RMSE', rmse)
@@ -310,13 +318,42 @@ def regression_main():
         train_x, test_x, train_y, test_y, total_train_x, total_train_y = preprocess_handle(pca_descending, y, train_split_type, train_mode)
         # lstm_base_model(train_x, test_x, train_y, test_y)
         # lstm 会保存模型，需要人为挑选模型，并利用plot_test对模型进行挑选,org的维度根据timestep的不同而不同
-        if train_split_type == 3 or train_split_type == 6:
+        if train_split_type == 3 or train_split_type == 5:
             plot_test(total_train_x, np.array(org_y)[train_split_type-1:])
         else:
             plot_test(total_train_x, np.array(org_y))
     else:
         print('Please input Train mode right!')
 
+def predict_lstm():
+
+    """
+        用来预测的脚本，每次先debug，得到当月的pca降维后的cur_data，替换后进行predict
+        :return:
+    """
+    cur_data = [[[0.31885202, 3.23529654, -2.95614662, 2.29483898, -1.21704727, 0.01354867,
+                -0.33039132, 1.49271252, 1.77723783, -0.36917082, 0.18782373, 0.93635122,
+                -0.71317357, 1.01424217, -1.5714216, 0.04539734, -0.76576722, 0.30582644,
+                -0.17748671, 0.45425971, -0.36891296, -0.50551561, 0.63327663, -0.10139743],
+                [1.31885202, 4.23529654, -1.95614662, 3.29483898, -0.21704727, 1.01354867,
+                0.66960868, 2.49271252, 2.77723783, 0.63082918, 1.18782373, 1.93635122,
+                0.28682643, 2.01424217, -0.5714216, 1.04539734, 0.23423278, 1.30582644,
+                0.82251329, 1.45425971, 0.63108704, 0.49448439, 1.63327663, 0.89860257],
+                [2.31885202,  5.23529654, -0.95614662, 4.29483898, 0.78295273, 2.01354867,
+                1.66960868, 3.49271252, 3.77723783, 1.63082918, 2.18782373, 2.93635122,
+                1.28682643, 3.01424217, 0.4285784, 2.04539734, 1.23423278, 2.30582644,
+                1.82251329, 2.45425971, 1.63108704, 1.49448439, 2.63327663, 1.89860257]]]
+    cur_d = np.array(cur_data)
+    cur_d.reshape((1, 3, 24))
+    model = load_model('./LSTM_3T_model/8000-0.00296_3T_LSTM_model_191025SGD.h5', 'SGD')
+    pre_value = model.predict(cur_d)
+    pre_v = math.pow(10, float(pre_value[0]))
+    print('Predict 1Value', pre_v)
+
 if __name__ == "__main__":
 
-    regression_main()
+    # train and plot test
+    # regression_main()
+
+    # predict
+    predict_lstm()
