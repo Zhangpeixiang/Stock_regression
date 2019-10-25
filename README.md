@@ -122,9 +122,9 @@ def plot_test(train_x, org_y):
 3. 使用全部训练集进行训练，对比未来结果，因为这个目前还没有数据，并且可以基于之前代码进行略微修改即可，故先不实验
 ## 实验结果分析
 综上，不难看出采用LSTM，并用3期作为时间步长效果最好，我们将提取所有预测数据，进行建模作为整理结果，并预测当月的沪深300月度股价<br>
-![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/2019.10plot.jpg)<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/2019.10plot.png)<br>
 结论：
 上面两幅图，第一张是整体的拟合曲线图，可以看到我们的模型对于训练集数据拟合程度在99%以上，而对于验证集数据，虽然拟合程度不高，但是12个月，仅有3个月方向预测失败，方向的准确率有67%的准确率，具体的跌转涨、涨转跌均准确预测，并没有数据滞后的感觉，整理来看是目前最优的模型，预测沪深300在10月有略微涨幅，今天是10月25日17：50，距离10月结束还有4个交易日，目前沪深300本月涨幅情况如下图<br>
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/10_pre.jpg)<br>
-目前来说方向应该没有问题，大概率这个月还是上涨的，但是具体涨幅是1%以内还是3~5%得看接下来这四个交易日得情况了~<br>
+目前来说方向应该没有问题，大概率这个月还是上涨的，但是具体涨幅是1%以内还是3~5%得看接下来这四个交易日得情况了<br>
 
