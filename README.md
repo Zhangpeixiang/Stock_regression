@@ -113,4 +113,4 @@ def plot_test(train_x, org_y):
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/8000_3T_test.png)<br>
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/8000_3T_res.jpg)<br>
 分析：<br>
-将time_step改为3个时间步伐时，模型收敛的也很快，观察整体拟合情况，比之前timestep为1的时候拟合的更好，反观验证集，完全消除了滞后一期的影响
+将time_step改为3个时间步伐时，模型收敛的也很快，观察整体拟合情况，比之前timestep为1的时候拟合的更好，反观验证集，完全消除了滞后一期的影响，令人惊喜的发现，前三期，竟然完美的拟合了曲线，整体去年一年的验证集，12个月的数据，仅仅有3个月预测方向出现了偏差，这个模型整体的效果不得不说很强，强的惊人，并且，其中高维下滑，下滑后的回涨也完美的预测到了，比较惊人，接下来开始研究一下timestep为6的情况
