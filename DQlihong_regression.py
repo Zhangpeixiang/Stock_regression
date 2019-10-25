@@ -54,8 +54,9 @@ def scaler_adjust(data, scaler_model):
     else:
         return np.array(data)
 
-def reshape_train_data(des_data):
+def reshape_train_data(des_data, num):
     """
+    假设针对3个时间步长：
     函数输入为降维后的【176， 24】维度的数据，将其转换为【176，3，24】，即将每三个月的数据融合在一起
     为了满足转换为3维度，转换为变为174维度，故y的标签也应该剔除前两个，从第三个开始
     :param des_data:
@@ -64,13 +65,12 @@ def reshape_train_data(des_data):
     des_list = des_data.tolist()
     res_list = []
     for index, data in enumerate(des_data):
-        if index < len(des_data)-2:
-            res_list.append(data)
-            res_list.append(des_data[index+1])
-            res_list.append(des_data[index+2])
+        if index < len(des_data)-num+1:
+            for i in range(num):
+                res_list.append(data+i)
         else:
             break
-    res_data = np.array(res_list).reshape(174, 3, 24)
+    res_data = np.array(res_list).reshape(176-num+1, num, 24)
     return res_data
 
 def preprocess_handle(pca_descending, scaler_y_data, split_type, mode):
@@ -93,10 +93,19 @@ def preprocess_handle(pca_descending, scaler_y_data, split_type, mode):
         Y_train = lstm_train_y[:-12]
         Y_test = lstm_train_y[-12:]
         return X_train, X_test, Y_train, Y_test, lstm_train_x, lstm_train_y
-    elif split_type == 2 and mode == 'lstm':
+    elif split_type == 3 and mode == 'lstm':
         # 将输入数据转换为LSTM的三个时间输入，即用之前的历史三个月的股价以及其参数预测下一个月的月度股价
-        lstm_train_x = reshape_train_data(pca_descending)
+        lstm_train_x = reshape_train_data(pca_descending, split_type)
         lstm_train_y = scaler_y_data[2:]
+        X_train = lstm_train_x[:-12]
+        X_test = lstm_train_x[-12:]
+        Y_train = lstm_train_y[:-12]
+        Y_test = lstm_train_y[-12:]
+        return X_train, X_test, Y_train, Y_test, lstm_train_x, lstm_train_y
+    elif split_type == 6 and mode == 'lstm':
+        # 将输入数据转换为LSTM的三个时间输入，即用之前的历史三个月的股价以及其参数预测下一个月的月度股价
+        lstm_train_x = reshape_train_data(pca_descending, split_type)
+        lstm_train_y = scaler_y_data[5:]
         X_train = lstm_train_x[:-12]
         X_test = lstm_train_x[-12:]
         Y_train = lstm_train_y[:-12]
@@ -206,7 +215,7 @@ def train_model(re_train, re_test, train_y, test_y):
     batch_size = 8
     epoch = 10000
     model = build_model()
-    checkpoint = ModelCheckpoint(filepath='./LSTM_3T_model/{epoch:02d}-{val_loss:.5f}_3T_LSTM_model_191024SGD.h5',
+    checkpoint = ModelCheckpoint(filepath='./LSTM_3T_model/{epoch:02d}-{val_loss:.5f}_3T_LSTM_model_191025SGD.h5',
                                  monitor='val_loss', save_best_only=False, save_weights_only=True, mode='min',
                                  period=500)
     history = model.fit(re_train, train_y, batch_size=batch_size, epochs=epoch, validation_data=(re_test, test_y),
@@ -248,8 +257,8 @@ def mape(y_true, y_pred):
 
 def plot_test(train_x, org_y):
     # 记录每个loss较低的模型名称
-    # 8000-0.00107_1T_LSTM_model_191024SGD.h5
-    model = load_model('./LSTM_3T_model/8000-0.00107_1T_LSTM_model_191024SGD.h5', 'SGD')
+    # 8000-0.00107_1T_LSTM_model_191024SGD.h5 5000-0.00299_3T_LSTM_model_191025SGD
+    model = load_model('./LSTM_3T_model/8000-0.00296_3T_LSTM_model_191025SGD.h5', 'SGD')
     plt.plot(np.array(org_y), 'blue', label='true data')
     com_list = model.predict(train_x).tolist()
     # 将Z-score标准化后的数据进行还原,这里无论是预测的y还是真实的y均*std+mean就可以了，这两个需要还原为原始值
@@ -285,8 +294,10 @@ def regression_main():
     # scaler_model 是数据标准化的方式
     # 4 ：Z-score来对输入x进行标准化
     scaler_model = 4
-    # train_split_type是训练集的分割方式，一种是随机抽取20%作为验证集，一种是固定最后的12个月作为验证集
-    train_split_type = 1
+    # train_split_type是训练集的分割方式与lstm的时间步长的选取，
+    # 1：一种是随机抽取20%作为验证集，2：一种是固定最后的12个月作为验证集
+    # 对于train_mode = 'lstm'时，train_split_type还代表了time_step
+    train_split_type = 3
     x, y, org_y = load_data(scaler_model)
     # pca进行降维，目前暂时降维到23维
     pca_descending = descending_dimension(x)
@@ -298,8 +309,11 @@ def regression_main():
     elif train_mode == 'lstm':
         train_x, test_x, train_y, test_y, total_train_x, total_train_y = preprocess_handle(pca_descending, y, train_split_type, train_mode)
         # lstm_base_model(train_x, test_x, train_y, test_y)
-        # lstm 会保存模型，需要人为挑选模型，并利用plot_test对模型进行挑选,org的维度根据timestep的不同需要自行调节
-        plot_test(total_train_x, np.array(org_y))
+        # lstm 会保存模型，需要人为挑选模型，并利用plot_test对模型进行挑选,org的维度根据timestep的不同而不同
+        if train_split_type == 3 or train_split_type == 6:
+            plot_test(total_train_x, np.array(org_y)[train_split_type-1:])
+        else:
+            plot_test(total_train_x, np.array(org_y))
     else:
         print('Please input Train mode right!')
 
