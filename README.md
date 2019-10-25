@@ -115,3 +115,8 @@ def plot_test(train_x, org_y):
 分析：<br>
 将time_step改为3个时间步伐时，模型收敛的也很快，观察整体拟合情况，比之前timestep为1的时候拟合的更好，反观验证集，完全消除了滞后一期的影响，令人惊喜的发现，前三期，竟然完美的拟合了曲线，整体去年一年的验证集，12个月的数据，仅仅有3个月预测方向出现了偏差，这个模型整体的效果不得不说很强，强的惊人，并且，其中高维下滑，下滑后的回涨也完美的预测到了，比较惊人，接下来开始研究一下timestep为6的情况<br>
 将timestep设置为6，同样采用后12个月作为验证集，SGD为LSTM优化器，训练10000次，观察模型效果如下：<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/6T_loss.png)<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/test_6T.png)<br>
+![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/total_6T.png)<br>
+不难看出，将timestep设置为半年并没有很好的提升模型的性能，反而使得模型有些过拟合，在验证集中表现出较差表现，综上，目前测试效果最好的模型是timestep为3，用最后12个月作为验证集的模型，但在实际应用中，我有一个大胆的想法，既然验证集最开始拟合的很靠谱，是不是说了训练集越长，模型越容易捕捉到其趋势？考虑到这里，获取可以尝试训练一个全部训练集的数据，然后通过实际得未来6个月的数据与有验证集的额模型进行对比，看到底是哪个在实际表现中更好。
+
