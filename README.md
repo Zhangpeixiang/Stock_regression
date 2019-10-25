@@ -119,7 +119,7 @@ def plot_test(train_x, org_y):
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/test_6T.png)<br>
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/total_6T.png)<br>
 不难看出，将timestep设置为半年并没有很好的提升模型的性能，反而使得模型有些过拟合，在验证集中表现出较差表现，综上，目前测试效果最好的模型是timestep为3，用最后12个月作为验证集的模型，但在实际应用中，我有一个大胆的想法，既然验证集最开始拟合的很靠谱，是不是说了训练集越长，模型越容易捕捉到其趋势？考虑到这里，获取可以尝试训练一个全部训练集的数据，然后通过实际得未来6个月的数据与有验证集的额模型进行对比，看到底是哪个在实际表现中更好。
-3. 使用全部训练集进行训练，对比未来结果，因为这个目前还没有数据，并且可以基于之前代码进行略微修改即可，故先不实验
+3. 使用全部训练集进行训练，对比未来结果，因为这个目前还没有数据，并且可以基于之前代码进行略微修改即可，故先不实验<br>
 ## 实验结果分析
 综上，不难看出采用LSTM，并用3期作为时间步长效果最好，我们将提取所有预测数据，进行建模作为整理结果，并预测当月的沪深300月度股价,具体得数据请参考xlsx中的temp sheet<br>
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/2019.10plot.png)<br>
