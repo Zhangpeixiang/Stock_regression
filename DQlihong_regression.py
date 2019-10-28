@@ -1,6 +1,6 @@
 """
 author：Zhang peixiang
-SVR、LSTM对沪深300指数进行日度预测
+SVR、LSTM对沪深300指数进行月度预测
 """
 from predict_each_m_v.classify import preprocess_handle
 from sklearn import preprocessing
