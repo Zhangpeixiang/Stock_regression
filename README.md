@@ -128,3 +128,4 @@ def plot_test(train_x, org_y):
 ![Image text](https://github.com/Zhangpeixiang/Stock_regression/blob/master/default_img/10_pre.jpg)<br>
 目前来说方向应该没有问题，大概率这个月还是上涨的，但是具体涨幅是1%以内还是3~5%得看接下来这四个交易日得情况了<br>
 
+## 采用对抗学习来进行训练，LSTM作为拟合器，CNN作为鉴别器进行训练
